@@ -2,30 +2,46 @@
 
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
+import { socket } from "./socket";
 
 export default function Home() {
-  const [clicks, setClicks] = useState(0);
-  const socket = io("ws://localhost:5000"); // Connect to websocket
+  const [clicks, setClicks] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    socket.timeout(2000).emit("init", true, (err, response) => {
+    socket.connect();
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    function initConnect(err, response) {
       // catch up to current
       if (err) {
         console.log(err);
       } else {
-        console.log("init response : ", response);
+        socket.connect();
         setClicks(response);
       }
-    });
+    }
 
-    socket.on("response", (arg, callback) => {
+    function clickResponse(arg, callback) {
       // update all users' variable in global|room in real time
-      console.log(arg);
       setClicks(arg);
-    });
+    }
+
+    socket.timeout(2000).emit("init", true, initConnect);
+    socket.on("response", clickResponse);
+
+    setLoaded(true);
+    return () => {
+      socket.off("init", initConnect);
+    };
   }, []);
 
-  const broadcastButton = () => {
+  function broadcastButton() {
     // update global|room variable in real time
     socket.timeout(2000).emit("click", true, (err, response) => {
       if (err) {
@@ -34,12 +50,14 @@ export default function Home() {
         console.log(response);
       }
     });
-  };
+  }
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-24">
-      {clicks ? clicks : "Loading..."}
-      <button onClick={broadcastButton}>Click Me</button>
-    </main>
+    loaded && (
+      <main className="flex min-h-screen flex-col items-center p-24">
+        {clicks !== false ? clicks : "Loading..."}
+        <button onClick={broadcastButton}>Click Me</button>
+      </main>
+    )
   );
 }
