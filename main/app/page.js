@@ -5,12 +5,12 @@ import { socket } from "./socket";
 import { io } from "socket.io-client";
 
 export default function Home() {
-  const [clicks, setClicks] = useState(false);
+  const [username, setUsername] = useState("");
+  const [users, setUsers] = useState([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     socket.connect();
-
     return () => {
       socket.disconnect();
     };
@@ -22,18 +22,26 @@ export default function Home() {
       if (err) {
         console.log(err);
       } else {
-        socket.connect();
-        setClicks(response);
+        setUsers(response);
       }
     }
 
-    function clickResponse(arg, callback) {
+    function collectUsers(arg, callback) {
       // update all users' variable in global|room in real time
-      setClicks(arg);
+      console.log(arg);
+      setUsers(arg);
+    }
+
+    function refreshUsers(arg, callback) {
+      // refresh user list
+      console.log(arg);
+      setUsers(arg);
     }
 
     socket.timeout(2000).emit("init", true, initConnect);
-    socket.on("response", clickResponse);
+    socket.on("test", (arg, callback) => console.log(arg));
+    socket.on("userDisconnected", refreshUsers);
+    socket.on("response", collectUsers);
 
     setLoaded(true);
     return () => {
@@ -41,22 +49,37 @@ export default function Home() {
     };
   }, []);
 
-  function broadcastButton() {
+  function submitUsername() {
     // update global|room variable in real time
-    socket.timeout(2000).emit("click", true, (err, response) => {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log(response);
-      }
-    });
+    if (!users.find((user) => user.id === socket.id)) {
+      socket.timeout(2000).emit("setUsername", username, (err, response) => {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log(response);
+        }
+      });
+    } else {
+      // set errors
+    }
   }
 
   return (
     loaded && (
       <main className="flex min-h-screen flex-col items-center p-24">
-        {clicks !== false ? clicks : "Loading..."}
-        <button onClick={broadcastButton}>Click Me</button>
+        <div className="ml-auto border-white border p-6 grid col-auto">
+          <h1>current_users : {users.length}</h1>
+          {users.map((user) => (
+            <span key={user.id}>{user.username}</span>
+          ))}
+        </div>
+        <input
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Enter username"
+          value={username}
+          className="text-black"
+        />
+        <button onClick={submitUsername}>Confirm</button>
       </main>
     )
   );

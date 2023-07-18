@@ -44,7 +44,6 @@ io.on("connection", (socket) => {
   socket.leave(socket.id); // disconnect auto-made room
   socket.join(defaultRoom); // join made room
 
-  users.push({ id: socket.id, room: defaultRoom, time: socket.handshake.time });
   commands.push({
     user: socket.id,
     type: "connected",
@@ -65,11 +64,12 @@ io.on("connection", (socket) => {
         type: "disconnect",
         timeInit: new Date(),
       });
+      io.emit("userDisconnected", users); // send all users new users list
     }
   });
 
   socket.on("init", (arg, callback) => {
-    callback(clientVaribles.globalClicks); // send back data to user who called it
+    callback(users); // send back data to user who called it
     commands.push({
       user: socket.id,
       type: "init",
@@ -77,14 +77,20 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("click", (arg, callback) => {
-    clientVaribles.globalClicks += 1;
-    io.emit("response", clientVaribles.globalClicks); // send to all users within global|room
+  socket.on("setUsername", (arg, callback) => {
+    users.push({
+      id: socket.id,
+      username: arg,
+      room: defaultRoom,
+      time: socket.handshake.time,
+    });
+    io.emit("response", users); // send to all users within global|room
     commands.push({
       user: socket.id,
-      type: "click",
+      type: "setUsername",
       timeInit: new Date(),
     });
+    callback(true);
   });
 });
 

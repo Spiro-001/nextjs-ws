@@ -19,12 +19,14 @@ function Home(props) {
           <table className="user-list">
             <tr className="top-h">
               <th>id</th>
+              <th>username</th>
               <th>current_room</th>
               <th>time_joined</th>
             </tr>
             {props.users.map((user) => (
               <tr className="user" key={user.id}>
                 <td>{user.id}</td>
+                <td>{user.username}</td>
                 <td>{user.room}</td>
                 <td>{user.time.toString()}</td>
               </tr>
@@ -41,7 +43,7 @@ function Home(props) {
             {props.commands.map((command) => (
               <tr key={command.user}>
                 <td>{command.user}</td>
-                <td>{command.type}</td>
+                <td id={command.type}>{command.type}</td>
                 <td>{command.timeInit.toString()}</td>
               </tr>
             ))}
