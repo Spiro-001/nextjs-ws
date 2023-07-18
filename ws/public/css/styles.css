@@ -2,6 +2,49 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
+  align-items: left;
+  gap: 12px 0;
+  width: fit-content;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
   border: 1px solid black;
+}
+
+.user-list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.user {
+  padding: 8px 16px;
+}
+
+.num-of-users {
+  margin: 2px 2px 0 2px;
+  padding: 2px 8px;
+  border: 1px solid black;
+  text-align: right;
+}
+
+.commands {
+  width: fit-content;
+  border: 1px solid black;
+}
+
+th {
+  text-align: left;
+  border: 1px solid black;
+  padding: 2px 8px;
+}
+
+td {
+  text-align: left;
+  border: 1px solid black;
+  padding: 2px 8px;
 }

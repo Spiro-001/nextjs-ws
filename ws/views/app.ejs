@@ -11,8 +11,37 @@
     <div class="main">
       <h1>Socket.io command logs</h1>
       <div class="user-info">
-        <span id="num-of-user"> <%= numberOfUsers %> </span>
-        <% users.forEach(user => { %> <%= user %> <% });%>
+        <span class="num-of-users"> active-users : <%= numberOfUsers %> </span>
+        <table class="user-list">
+          <tr class="top-h">
+            <th>id</th>
+            <th>current_room</th>
+            <th>time_joined</th>
+          </tr>
+          <% users.forEach(user => { %>
+          <tr class="user">
+            <td><%= user.id %></td>
+            <td><%= user.room %></td>
+            <td><%= user.time %></td>
+          </tr>
+          <% });%>
+        </table>
+      </div>
+      <div class="commands">
+        <table class="command-list">
+          <tr class="top-h">
+            <th>user</th>
+            <th>command</th>
+            <th>time_init</th>
+          </tr>
+          <% commands.forEach(command => { %>
+          <tr>
+            <td><%= command.user %></td>
+            <td><%= command.type %></td>
+            <td><%= command.timeInit %></td>
+          </tr>
+          <%});%>
+        </table>
       </div>
     </div>
   </body>
