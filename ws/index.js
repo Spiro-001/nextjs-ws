@@ -6,8 +6,9 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "http://localhost:8080",
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 const cors = require("cors");
@@ -24,15 +25,24 @@ let clientVaribles = {
   globalClicks: 0,
 };
 
+const users = [];
+
 app.get("/", (req, res) => {
-  res.render("app", { numberOfUsers: serverVariables.numberOfUsers });
+  res.render("app", {
+    numberOfUsers: serverVariables.numberOfUsers,
+    users: users,
+  });
 });
 
 io.on("connection", (socket) => {
   console.log(`User ${socket.id} connected`);
+  users.push(socket.id);
   serverVariables.numberOfUsers += 1;
   socket.on("disconnect", () => {
     console.log(`User ${socket.id} disconnected`);
+    const indexOfUser = users.indexOf(socket.id);
+    if (indexOfUser > -1) users.splice(indexOfUser, 1);
+    serverVariables.numberOfUsers -= 1;
   });
   socket.on("init", (arg, callback) => {
     callback(clientVaribles.globalClicks); // send back data to user who called it

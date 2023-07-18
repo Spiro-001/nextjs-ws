@@ -12,6 +12,7 @@
       <h1>Socket.io command logs</h1>
       <div class="user-info">
         <span id="num-of-user"> <%= numberOfUsers %> </span>
+        <% users.forEach(user => { %> <%= user %> <% });%>
       </div>
     </div>
   </body>
