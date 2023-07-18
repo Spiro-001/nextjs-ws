@@ -5,7 +5,7 @@ function Home(props) {
     <>
       <head>
         <link rel="stylesheet" href="css/styles.css" />
-        <script src="js/bundle.js"></script>
+        <script type="module" src="js/app.js"></script>
       </head>
       <form method="GET">
         <input type="submit" value="Refresh" />

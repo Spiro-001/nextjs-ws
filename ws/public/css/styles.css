@@ -33,8 +33,10 @@
 }
 
 .commands {
+  height: 512px;
   width: fit-content;
   border: 1px solid black;
+  overflow-y: auto;
 }
 
 th {
