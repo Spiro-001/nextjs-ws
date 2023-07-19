@@ -108,13 +108,13 @@ export default function Home() {
           gsap.to(otherCursors.current[userCursor], {
             x: cursors[userCursor].x,
             y: cursors[userCursor].y,
-            duration: 0.5,
-            ease: "back.out(1.7)",
+            duration: 2,
+            ease: "power4.out",
           });
         }
       });
       setUpdateMouse((prev) => !prev);
-    }, 100);
+    }, 500);
     socket.on("mouseSync", gatherMouseData);
 
     return () => {
@@ -149,14 +149,18 @@ export default function Home() {
       <>
         <span
           id="cursor"
-          className="h-6 w-6 bg-white absolute  cursor-none"
+          className="h-6 w-6 bg-white absolute cursor-none select-none"
           ref={cursor}
-        ></span>
+        >
+          <span className="relative bottom-6 flex justify-center">
+            {displayName(socket.id) ?? "Anonymous"}
+          </span>
+        </span>
         {Object.keys(cursors).map((userCursor) => (
           <span
             key={userCursor}
             id={userCursor + "cx"}
-            className="h-6 w-6 bg-white absolute cursor-none"
+            className="h-6 w-6 bg-white absolute cursor-none select-none"
             ref={(ref) => (otherCursors.current[userCursor] = ref)}
           >
             <span className="relative bottom-6 flex justify-center">
