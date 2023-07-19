@@ -101,6 +101,10 @@ io.on("connection", (socket) => {
   socket.on("mousemove", (arg, callback) => {
     io.emit("mouseSync", arg);
   });
+
+  socket.on("drawing", (arg, callback) => {
+    io.emit("userDrawing", arg);
+  });
 });
 
 server.listen(5000, () => {

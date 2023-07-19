@@ -16,6 +16,7 @@ export default function Home() {
   const [penDown, setPenDown] = useState(false);
   const [brushSize, setBrushSize] = useState(10);
   const [brushColor, setBrushColor] = useState("#000000");
+  const [selectedTool, setSelectedTool] = useState(0);
 
   const cursor = useRef();
   const otherCursors = useRef({});
@@ -51,13 +52,14 @@ export default function Home() {
     }
 
     socket.timeout(2000).emit("init", true, initConnect);
-    socket.on("test", (arg, callback) => console.log(arg));
     socket.on("userDisconnected", refreshUsers);
     socket.on("response", collectUsers);
 
     setLoaded(true);
     return () => {
       socket.off("init", initConnect);
+      socket.off("userDisconnected", refreshUsers);
+      socket.off("response", collectUsers);
     };
   }, []);
 
@@ -123,11 +125,20 @@ export default function Home() {
         }
       });
       setUpdateMouse((prev) => !prev);
-    }, 500);
+    }, 10);
+
+    function syncDrawing(arg, callback) {
+      console.log(arg);
+      wsDraw(arg.coord, arg.size, arg.color);
+    }
+
+    socket.on("userDrawing", syncDrawing);
     socket.on("mouseSync", gatherMouseData);
 
     return () => {
       clearInterval(syncMouse);
+      socket.off("userDrawing", syncDrawing);
+      socket.off("mouseSync", gatherMouseData);
       document.removeEventListener("mousemove", trackMouse);
     };
   }, [updateMouse]);
@@ -165,10 +176,27 @@ export default function Home() {
   }
 
   function draw(coord, size, color) {
+    socket.emit("drawing", { coord, size, color }, (err, response) => {
+      if (err) {
+        // console.log(err);
+      } else {
+        // console.log(response);
+      }
+    });
     let ctx = canvasRef.current.getContext("2d");
     ctx.beginPath();
     ctx.arc(coord.x, coord.y, size, 0, 2 * Math.PI); // x, y, size
     ctx.fillStyle = color;
+    if (selectedTool === 1) ctx.fillStyle = "white";
+    ctx.fill();
+  }
+
+  function wsDraw(coord, size, color) {
+    let ctx = canvasRef.current.getContext("2d");
+    ctx.beginPath();
+    ctx.arc(coord.x, coord.y, size, 0, 2 * Math.PI); // x, y, size
+    ctx.fillStyle = color;
+    if (selectedTool === 1) ctx.fillStyle = "white";
     ctx.fill();
   }
 
@@ -176,7 +204,6 @@ export default function Home() {
     let coord = { x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY };
     setPenDown(true);
     draw(coord, brushSize, brushColor);
-    console.log("down");
   }
 
   function readyDraw(event) {
@@ -207,7 +234,7 @@ export default function Home() {
           <span
             key={userCursor}
             id={userCursor + "cx"}
-            className="h-6 w-6 bg-white absolute cursor-none select-none"
+            className="h-6 w-6 bg-white absolute cursor-none select-none border border-black"
             ref={(ref) => (otherCursors.current[userCursor] = ref)}
           >
             <span className="relative top-6 flex justify-center">
@@ -253,22 +280,37 @@ export default function Home() {
               className="bg-white"
               onMouseDown={drawStart}
               onMouseMove={readyDraw}
+              onMouseLeave={(e) => setPenDown(false)}
               onMouseUp={endDraw}
               ref={canvasRef}
             />
-            <input
-              type="range"
-              min={1}
-              max={25}
-              step={0.5}
-              value={brushSize}
-              onChange={(e) => setBrushSize(e.target.value)}
-              className="w-32"
-            />
-            <input
-              type="color"
-              onChange={(e) => setBrushColor(e.target.value)}
-            />
+            <div>
+              <input
+                type="range"
+                min={1}
+                max={25}
+                step={0.5}
+                value={brushSize}
+                onChange={(e) => setBrushSize(e.target.value)}
+                className="w-32"
+              />
+              <input
+                type="color"
+                onChange={(e) => setBrushColor(e.target.value)}
+              />
+              <span
+                className={selectedTool === 0 ? "border border-white" : ""}
+                onClick={(e) => setSelectedTool(0)}
+              >
+                Pen
+              </span>
+              <span
+                className={selectedTool === 1 ? "border border-white" : ""}
+                onClick={(e) => setSelectedTool(1)}
+              >
+                Eraser
+              </span>
+            </div>
           </div>
         </main>
       </>
