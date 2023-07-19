@@ -11,6 +11,7 @@ export default function Home() {
   const [loaded, setLoaded] = useState(false);
   const [cursors, setCursors] = useState({});
   const [updateMouse, setUpdateMouse] = useState(false);
+  const [colorOpen, setColorOpen] = useState(false);
   const cursor = useRef();
   const otherCursors = useRef({});
 
@@ -78,12 +79,14 @@ export default function Home() {
       );
 
       // animation using gsap
-      gsap.to(cursor.current, {
-        x: mouseEvent.clientX,
-        y: mouseEvent.clientY,
-        duration: 0.5,
-        ease: "back.out(1.7)",
-      });
+      if (!colorOpen) {
+        gsap.to(cursor.current, {
+          x: mouseEvent.clientX + 10,
+          y: mouseEvent.clientY + 10,
+          duration: 0.5,
+          ease: "back.out(1.7)",
+        });
+      }
     }
 
     function gatherMouseData(arg, callback) {
@@ -144,6 +147,17 @@ export default function Home() {
     return name?.username;
   }
 
+  function onClickColor() {
+    gsap.to(cursor.current, {
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2,
+    });
+  }
+
+  function changeCursorColor(element) {
+    cursor.current.style.backgroundColor = element.target.value;
+  }
+
   return (
     loaded && (
       <>
@@ -152,7 +166,7 @@ export default function Home() {
           className="h-6 w-6 bg-white absolute cursor-none select-none"
           ref={cursor}
         >
-          <span className="relative bottom-6 flex justify-center">
+          <span className="relative top-6 flex justify-center whitespace-nowrap">
             {displayName(socket.id) ?? "Anonymous"}
           </span>
         </span>
@@ -163,7 +177,7 @@ export default function Home() {
             className="h-6 w-6 bg-white absolute cursor-none select-none"
             ref={(ref) => (otherCursors.current[userCursor] = ref)}
           >
-            <span className="relative bottom-6 flex justify-center">
+            <span className="relative top-6 flex justify-center">
               {displayName(userCursor) ?? "Anonymous"}
             </span>
           </span>
@@ -174,6 +188,7 @@ export default function Home() {
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter username"
               value={username}
+              maxLength={15}
               className="text-black px-2 outline-none py-1 rounded-l-sm"
             />
             <button
@@ -182,6 +197,13 @@ export default function Home() {
             >
               Confirm
             </button>
+            <input
+              type="color"
+              onChange={changeCursorColor}
+              onClick={onClickColor}
+              onFocus={(e) => setColorOpen(true)}
+              onBlur={(e) => setColorOpen(false)}
+            />
           </div>
           <div className="border-white border p-6 grid col-auto h-fit max-h-64 overflow-y-auto">
             <h1>current_users : {users.length}</h1>
