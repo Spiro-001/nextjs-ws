@@ -32,6 +32,7 @@ let clientVaribles = {
 
 const users = [];
 const commands = [];
+const cursors = {};
 const defaultRoom = "main";
 
 app.get("/", (req, res) => {
@@ -46,6 +47,12 @@ io.on("connection", (socket) => {
   console.log(`User ${socket.id} connected to ${defaultRoom}`);
   socket.leave(socket.id); // disconnect auto-made room
   socket.join(defaultRoom); // join made room
+
+  let newUser = {
+    id: socket.id,
+    room: defaultRoom,
+    time: socket.handshake.time,
+  };
 
   commands.push({
     user: socket.id,
@@ -81,12 +88,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("setUsername", (arg, callback) => {
-    users.push({
-      id: socket.id,
-      username: arg,
-      room: defaultRoom,
-      time: socket.handshake.time,
-    });
+    users.push({ ...newUser, username: arg });
     io.emit("response", users); // send to all users within global|room
     commands.push({
       user: socket.id,
@@ -94,6 +96,10 @@ io.on("connection", (socket) => {
       timeInit: new Date(),
     });
     callback(true);
+  });
+
+  socket.on("mousemove", (arg, callback) => {
+    io.emit("mouseSync", arg);
   });
 });
 
