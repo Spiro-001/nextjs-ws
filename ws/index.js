@@ -105,10 +105,13 @@ io.on("connection", (socket) => {
   socket.on("drawing", (arg, callback) => {
     io.emit("userDrawing", arg);
   });
+
+  socket.on("initDrawing", (arg, callback) => {
+    socket.broadcast.emit("requestB64Canvas", arg);
+    socket.on("imgReady", (_arg, _callback) => {});
+  });
 });
 
-server.listen(5000, () => {
-  console.log("listening on *:5000");
+server.listen(5050, () => {
+  console.log("listening on *:5050");
 });
-
-module.exports = io;

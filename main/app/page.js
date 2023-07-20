@@ -18,6 +18,8 @@ export default function Home() {
   const [brushColor, setBrushColor] = useState("#000000");
   const [selectedTool, setSelectedTool] = useState(0);
 
+  const [base64URL, setBase64URL] = useState("");
+
   const cursor = useRef();
   const otherCursors = useRef({});
   const canvasRef = useRef();
@@ -35,29 +37,48 @@ export default function Home() {
       if (err) {
         console.log(err);
       } else {
+        socket.emit("initDrawing", socket.id, initDrawing);
         setUsers(response);
       }
     }
 
     function collectUsers(arg, callback) {
       // update all users' variable in global|room in real time
-      console.log(arg);
       setUsers(arg);
     }
 
     function refreshUsers(arg, callback) {
       // refresh user list
-      console.log(arg);
       setUsers(arg);
+    }
+
+    function initDrawing(response) {
+      // setup canvas to latest with response
+      console.log(response);
+      if (!response) {
+        let updateCanvas = new Image();
+        updateCanvas.src = response;
+        let ctx = canvasRef.current.getContext("2d");
+        ctx.drawImage(updateCanvas, 0, 0);
+      }
+    }
+
+    function sendB64C(arg, callback) {
+      console.log("sent");
+      let canvasB64 = canvasRef.current.toDataURL();
+      console.log(canvasB64);
+      socket.emit("imgReady", canvasB64);
     }
 
     socket.timeout(2000).emit("init", true, initConnect);
     socket.on("userDisconnected", refreshUsers);
     socket.on("response", collectUsers);
+    socket.on("requestB64Canvas", sendB64C);
 
     setLoaded(true);
     return () => {
       socket.off("init", initConnect);
+      socket.off("initDrawing", initDrawing);
       socket.off("userDisconnected", refreshUsers);
       socket.off("response", collectUsers);
     };
@@ -312,6 +333,7 @@ export default function Home() {
               </span>
             </div>
           </div>
+          <img src={base64URL} />
         </main>
       </>
     )
