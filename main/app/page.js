@@ -140,13 +140,13 @@ export default function Home() {
           gsap.to(otherCursors.current[userCursor], {
             x: cursors[userCursor].x,
             y: cursors[userCursor].y,
-            duration: 2,
+            duration: 0.2,
             ease: "power4.out",
           });
         }
       });
       setUpdateMouse((prev) => !prev);
-    }, 10);
+    }, 1);
 
     function syncDrawing(arg, callback) {
       console.log(arg);
