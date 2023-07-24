@@ -24,6 +24,7 @@ app.use(cors());
 
 let serverVariables = {
   numberOfUsers: 0,
+  canvas: "",
 };
 
 let clientVaribles = {
@@ -107,8 +108,12 @@ io.on("connection", (socket) => {
   });
 
   socket.on("initDrawing", (arg, callback) => {
-    socket.broadcast.emit("requestB64Canvas", arg);
-    socket.on("imgReady", (_arg, _callback) => {});
+    callback(serverVariables.canvas);
+  });
+
+  socket.on("imgReady", (arg, callback) => {
+    serverVariables.canvas = arg;
+    console.log(serverVariables.canvas);
   });
 });
 

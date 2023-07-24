@@ -37,7 +37,6 @@ export default function Home() {
       if (err) {
         console.log(err);
       } else {
-        socket.emit("initDrawing", socket.id, initDrawing);
         setUsers(response);
       }
     }
@@ -54,26 +53,22 @@ export default function Home() {
 
     function initDrawing(response) {
       // setup canvas to latest with response
-      console.log(response);
-      if (!response) {
+      // console.log(response);
+      if (response) {
         let updateCanvas = new Image();
         updateCanvas.src = response;
-        let ctx = canvasRef.current.getContext("2d");
-        ctx.drawImage(updateCanvas, 0, 0);
+        updateCanvas.onload = () => {
+          let ctx = canvasRef.current.getContext("2d");
+          ctx.drawImage(updateCanvas, 0, 0);
+        };
+        setBase64URL(response);
       }
     }
 
-    function sendB64C(arg, callback) {
-      console.log("sent");
-      let canvasB64 = canvasRef.current.toDataURL();
-      console.log(canvasB64);
-      socket.emit("imgReady", canvasB64);
-    }
-
     socket.timeout(2000).emit("init", true, initConnect);
+    socket.emit("initDrawing", true, initDrawing);
     socket.on("userDisconnected", refreshUsers);
     socket.on("response", collectUsers);
-    socket.on("requestB64Canvas", sendB64C);
 
     setLoaded(true);
     return () => {
@@ -149,7 +144,6 @@ export default function Home() {
     }, 1);
 
     function syncDrawing(arg, callback) {
-      console.log(arg);
       wsDraw(arg.coord, arg.size, arg.color);
     }
 
@@ -236,7 +230,23 @@ export default function Home() {
   }
 
   function endDraw(event) {
+    let canvasB64 = canvasRef.current.toDataURL();
+    socket.emit("imgReady", canvasB64);
     setPenDown(false);
+  }
+
+  function leaveCanvas(event) {
+    let formatSpanID;
+    if (event.relatedTarget.id) {
+      formatSpanID = event.relatedTarget.id.substr(
+        0,
+        event.relatedTarget.id.length - 2
+      );
+    }
+    if (event.relatedTarget === cursor.current) {
+      // } else if (otherCursors.current[formatSpanID] === event.relatedTarget) {
+      // } else if (formatSpanID && event.relatedTarget.id.includes("nt")) {
+    } else setPenDown(false);
   }
 
   return (
@@ -246,6 +256,7 @@ export default function Home() {
           id="cursor"
           className="h-6 w-6 bg-white absolute cursor-none select-none border border-black"
           ref={cursor}
+          onClick={(e) => console.log(e)}
         >
           <span className="relative top-6 flex justify-center whitespace-nowrap">
             {displayName(socket.id) ?? "Anonymous"}
@@ -258,7 +269,10 @@ export default function Home() {
             className="h-6 w-6 bg-white absolute cursor-none select-none border border-black"
             ref={(ref) => (otherCursors.current[userCursor] = ref)}
           >
-            <span className="relative top-6 flex justify-center">
+            <span
+              id={userCursor + "nt"}
+              className="relative top-6 flex justify-center"
+            >
               {displayName(userCursor) ?? "Anonymous"}
             </span>
           </span>
@@ -301,7 +315,7 @@ export default function Home() {
               className="bg-white"
               onMouseDown={drawStart}
               onMouseMove={readyDraw}
-              onMouseLeave={(e) => setPenDown(false)}
+              onMouseLeave={leaveCanvas}
               onMouseUp={endDraw}
               ref={canvasRef}
             />
